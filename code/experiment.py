@@ -6,6 +6,9 @@ Date: 26/4/2023
 from helper import *
 from sklearn.metrics import normalized_mutual_info_score
 
+NMI_RESULTS_FILE = '../results/NMI_results.npy'
+K_RESULTS_FILE = '../results/K_results.npy'
+
 if __name__ == '__main__':
 
     # get a list of all datasets....
@@ -92,12 +95,22 @@ if __name__ == '__main__':
                 best_P_alg_results[i] = normalized_mutual_info_score(best_P[i, :], L)
                 # chosen_k = best_P_inds[i] + 2
                 best_k_alg_results[i] = best_P_inds[i] + 2
-        best_k_ds_results[clMethod_ind, :] = best_k_alg_results
-        best_P_ds_results[clMethod_ind, :] = best_P_alg_results
-        clMethod_ind += 1
-    best_k_results[ds_ind, :,:] = best_k_ds_results
-    best_P_results[ds_ind, :,:] = best_P_ds_results
-    ds_ind += 1
+
+            best_k_ds_results[clMethod_ind, :] = best_k_alg_results
+            best_P_ds_results[clMethod_ind, :] = best_P_alg_results
+
+            
+            clMethod_ind += 1
+        
+        # Save the results for each dataset (# algorithms, #Partitions i.e. range of K[different for each dataset], #CVIs)
+        np.save('../results/' + ds + '_results', ds_results) 
+
+        best_k_results[ds_ind, :,:] = best_k_ds_results
+        best_P_results[ds_ind, :,:] = best_P_ds_results
+        ds_ind += 1
+
+    np.save(NMI_RESULTS_FILE, best_P_results)
+    np.save(K_RESULTS_FILE,best_k_results)
 
 
 
