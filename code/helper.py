@@ -4,6 +4,7 @@ import pandas as pd
 import CVIs
 import methods
 import inspect
+from itertools import combinations
 
 ''' LOADING THE DATA '''
 def load_data(file_path:str) -> np.array:
@@ -13,12 +14,21 @@ def load_data(file_path:str) -> np.array:
 
 
 ''' CONSTRAINT GENERATION METHODS '''
-def RAL(data:np.array, GT_labels:np.array) -> np.array:
-    return
+def percentage_constrint_generation(data:np.array, GT_labels:np.array, percentage:float) -> np.array:
+    ML, CL = [], []
+    N,n = data.shape
+    combs = list(combinations(np.arange(N), 2))
+    no_combs = len(list(combs))
+    no_constraints = int(percentage*N)
+    rand_ind = np.random.permutation(np.arange(no_combs))[:no_constraints]
+    combs = np.asarray(combs)
 
-def RAC(data:np.array, GT_labels:np.array) -> np.array:
-    return
-
+    for comb in combs[rand_ind, :]:
+        if GT_labels(comb[0]) == GT_labels(comb[1]):
+            ML.append(comb)
+        else:
+            CL.append(comb)
+    return ML, CL
 
 ''' FUNCTIONS TO GATHER THE REQUIRED ELEMENTS OF THE EXPERIMENT '''
 def get_CVIs() -> list:

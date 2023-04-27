@@ -6,8 +6,10 @@ Date: 26/4/2023
 from helper import *
 from sklearn.metrics import normalized_mutual_info_score
 
-NMI_RESULTS_FILE = '../results/NMI_results.npy'
-K_RESULTS_FILE = '../results/K_results.npy'
+
+PERCENTAGE_CONSTRINATS = 0.1
+NMI_RESULTS_FILE = '../results/NMI_results_PC' + str(PERCENTAGE_CONSTRINATS)+ '.npy'
+K_RESULTS_FILE = '../results/K_results_PC' + str(PERCENTAGE_CONSTRINATS)+ '.npy'
 
 if __name__ == '__main__':
 
@@ -35,6 +37,7 @@ if __name__ == '__main__':
         D, L = load_data(ds)
         N,n = D.shape
         # [ML, CL] --> GENERATE CONSTRAINTS HERE
+        ML,CL = percentage_constrint_generation(D,L,PERCENTAGE_CONSTRINATS)
 
         K_range = np.arange(2,int(np.sqrt(N))) # range of values for K
 
