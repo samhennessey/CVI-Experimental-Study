@@ -5,6 +5,8 @@ import CVIs
 import methods
 import inspect
 from itertools import combinations
+import random
+
 
 ''' LOADING THE DATA '''
 def load_data(file_path:str) -> np.array:
@@ -28,7 +30,29 @@ def percentage_constrint_generation(data:np.array, GT_labels:np.array, percentag
             ML.append(comb)
         else:
             CL.append(comb)
-    return ML, CL
+    return np.asarray(ML), np.asarray(CL)
+
+def constraint_generation_setN(data:np.array, GT_labels:np.array, N:int) -> np.array:
+    ML, CL = [], []
+    clusters = {}
+    unique_labels = np.unique(GT_labels)
+    for i in unique_labels:
+        this_cluster = (GT_labels == i)
+        clusters[i] = np.asarray(this_cluster).nonzero()[0]
+    nc = 0
+    while nc < N:
+        #  generate a ML constraint
+        rc = random.sample(unique_labels,1)
+        ml_pair = random.sample(clusters[rc], 2)
+        ML.append(ml_pair)
+
+        rp = random.sample(unique_labels, 2)
+        cl_pair = []
+        for i in np.arange(2):
+            cl_pair.append(random.sample(clusters[rp[i]], 1))
+        CL.append(cl_pair)
+        nc += 2
+    return ML,CL
 
 ''' FUNCTIONS TO GATHER THE REQUIRED ELEMENTS OF THE EXPERIMENT '''
 def get_CVIs() -> list:
