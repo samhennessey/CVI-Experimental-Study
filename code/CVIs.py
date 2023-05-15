@@ -162,40 +162,46 @@ def computeMySWC(A,cl,ncl,cores,pdist,local_core) -> float:
     mcv = 0
     for i in np.arange(ncores):
         mcv = mcv+(s[i] * nl[i])
+
     return mcv/n
 
 ''' HELPER METHODS FOR THE LCCV CLUSTERING METHOD (SILHOUETTE+)'''
 def computeSWC(D, cl, ncl, dist):
-    n, _ = D.shape
-    cdata = {}
+    N, n = D.shape
+    cdata, cindex = {}, {}
     numc = ncl
     for i in np.arange(ncl):
         nump = 0
-        for j in np.arange(n):
+        points_in_cluster = np.sum(cl == i)
+        cdata_i = np.empty((points_in_cluster, n))
+        cindex_i = np.empty(points_in_cluster)
+        for j in np.arange(N):
             if cl[j] == i:
+                cdata_i[nump,:] = D[j,:]
+                cindex_i[nump] = j 
                 nump += 1
-                cdata[i][nump,:] = D[j,:] 
-                cindex[i, nump] = j
+        cdata[i] = cdata_i 
+        cindex[i] = cindex_i
     numo = 0
     # don't compute the swc of outliers
     if np.min(cl) <= 0:
-        for i in np.arange(n):
+        for i in np.arange(N):
             if cl[i] <= 0:
                 numo += 1
     
     swc = 0
-    s1 = np.zeros(n)
+    s1 = np.zeros(N)
     for i in np.arange(numc):
         a, b, s = [], [], []
-        np, _ = cdata[i].shape
+        npnt, _ = cdata[i].shape
         if np > 1:
-            for j in np.arange(np):
+            for j in np.arange(npnt):
                 # COMPUTE a(j)
                 suma = 0
-                for k in np.arange(np):
+                for k in np.arange(npnt):
                     if j != k:
-                        suma += dist[cindex[i, j], cindex[i, k]]
-                a[j] = suma/(np-1)
+                        suma += dist[cindex[i][j], cindex[i][k]]
+                a[j] = suma/(npnt-1)
 
                 # COMPUTE b(j)
                 d = np.ones(numc) * float('inf')
@@ -204,15 +210,15 @@ def computeSWC(D, cl, ncl, dist):
                         np2, _ = cdata[k].shape
                         sumd = 0
                         for l in np.arange(np2):
-                            sumd += dist[cindex[i,j], cindex[k,l]]
+                            sumd += dist[cindex[i][j], cindex[k][l]]
                         d[k] = sumd/np2
                 b[j] = np.min(d)
                 # COMPUTE s(j)
                 s[j] = (b[j] - a[j])/np.max([a[j], b[j]])
-                s1[cindex[i, j]] = s[j]
+                s1[cindex[i][j]] = s[j]
                 swc += s[j]
     
-    swc = swc/(n - numo)
+    swc = swc/(N - numo)
     return swc, s1
 
 

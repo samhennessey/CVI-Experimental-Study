@@ -97,7 +97,7 @@ def average_linkage(data:np.array,K:int):
 
 import os
 
-def LCCV(data) -> np.array:
+def LCCV(data:np.array) -> np.array:
     
     N,n = data.shape
     dist = euclidean_distances(data,data)
