@@ -31,7 +31,7 @@ def sil_NH(data:np.array,P:np.array) -> float:
     return ALPHA*norm_sil(data,P) + (1-ALPHA)*NH(data,P)
 
 def LCCV_index(data:np.array,P:np.array) -> float:
-    N,n = data.shape
+    N,_ = data.shape
     dist = euclidean_distances(data,data)
     s_dist = np.sort(dist, axis=1)
     index = np.argsort(dist, axis=1)

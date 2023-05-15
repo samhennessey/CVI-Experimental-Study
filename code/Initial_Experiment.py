@@ -8,7 +8,7 @@ CONSTRAINT_PERCENTAGE = 0.1
 MAX_CLUSTERS = 10
 RESULTS_LOCATION = '../results/'
 
-CLUSTERING_METHDOS = [K_means]
+CLUSTERING_METHDOS = [K_means, average_linkage]
 CVIS = [satC, satC_NH, satC_sil, satC_LCCV, satC_comb, LCCV_index]
 
 if __name__ == '__main__':
