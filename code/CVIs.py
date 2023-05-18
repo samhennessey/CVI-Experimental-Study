@@ -6,17 +6,19 @@ from sklearn.metrics.pairwise import euclidean_distances
 from collections import Counter
 import networkx as nx
 
+from methods import computeMySWC
+
 ALPHA = 0.5
 
 def satC(P:np.array, ML:np.array,CL:np.array) -> float:
     sat = 0
     for ml in ML:
-        if P[int(ml[0]-1)] == P[int(ml[1]-1)]:
+        if P[ml[0]] == P[ml[1]]:
             sat += 1
     for cl in CL:
-        if P[int(cl[0]-1)] != P[int(cl[1]-1)]:
+        if P[cl[0]] != P[cl[1]]:
             sat += 1
-    return sat/(ML.shape[0] + CL.shape[0])
+    return sat/(len(ML) + len(CL))
 
 def satC_comb(data:np.array,P:np.array,ML:np.array,CL:np.array) -> float:
     return ALPHA*satC(P,ML,CL) + (1-ALPHA)*((NH(data,P) + norm_sil(data,P))/2)
@@ -137,90 +139,9 @@ def LCCV_index(data:np.array,P:np.array) -> float:
     for i in np.arange(len(u)):
         new_cl[P == u[i]] = i
     P = new_cl
-    nl = np.max(P)
+    nl = np.max(P) + 1
 
-    return computeMySWC(data,cl,nl,cores,shortest_path,local_core)
-
-''' HELPER METHODS FOR THE LCCV CLUSTERING METHOD'''
-def computeMySWC(A,cl,ncl,cores,pdist,local_core) -> float:
-    ncores = len(cores)
-    n, dims = A.shape
-    D = np.zeros((ncores, dims))
-    cl_cores = np.zeros(ncores)
-    for i in np.arange(ncores):
-        D[i,:] = A[cores[i], :]
-        cl_cores[i] = cl[cores[i]]
-    nl = np.zeros(ncores)
-
-    # count the number of points belonging to each core
-    for i in np.arange(ncores):
-        for j in np.arange(n):
-            if local_core[j] == cores[i] and cl[j] > 0:
-                nl[i] = nl[i] + 1
-    
-    _, s = computeSWC(D, cl_cores, ncl, pdist)
-    mcv = 0
-    for i in np.arange(ncores):
-        mcv = mcv+(s[i] * nl[i])
-
-    return mcv/n
-
-''' HELPER METHODS FOR THE LCCV CLUSTERING METHOD (SILHOUETTE+)'''
-def computeSWC(D, cl, ncl, dist):
-    N, n = D.shape
-    cdata, cindex = {}, {}
-    numc = ncl
-    for i in np.arange(ncl):
-        nump = 0
-        points_in_cluster = np.sum(cl == i)
-        cdata_i = np.empty((points_in_cluster, n))
-        cindex_i = np.empty(points_in_cluster)
-        for j in np.arange(N):
-            if cl[j] == i:
-                cdata_i[nump,:] = D[j,:]
-                cindex_i[nump] = j 
-                nump += 1
-        cdata[i] = cdata_i 
-        cindex[i] = cindex_i
-    numo = 0
-    # don't compute the swc of outliers
-    if np.min(cl) <= 0:
-        for i in np.arange(N):
-            if cl[i] <= 0:
-                numo += 1
-    
-    swc = 0
-    s1 = np.zeros(N)
-    for i in np.arange(numc):
-        a, b, s = [], [], []
-        npnt, _ = cdata[i].shape
-        if np > 1:
-            for j in np.arange(npnt):
-                # COMPUTE a(j)
-                suma = 0
-                for k in np.arange(npnt):
-                    if j != k:
-                        suma += dist[cindex[i][j], cindex[i][k]]
-                a[j] = suma/(npnt-1)
-
-                # COMPUTE b(j)
-                d = np.ones(numc) * float('inf')
-                for k in np.arange(numc):
-                    if k != i:
-                        np2, _ = cdata[k].shape
-                        sumd = 0
-                        for l in np.arange(np2):
-                            sumd += dist[cindex[i][j], cindex[k][l]]
-                        d[k] = sumd/np2
-                b[j] = np.min(d)
-                # COMPUTE s(j)
-                s[j] = (b[j] - a[j])/np.max([a[j], b[j]])
-                s1[cindex[i][j]] = s[j]
-                swc += s[j]
-    
-    swc = swc/(N - numo)
-    return swc, s1
-
+    return computeMySWC(data,P,cores.astype(int),shortest_path,local_core)
 
 def satC_LCCV(data:np.array,P:np.array, ML:np.array, CL:np.array) -> float:
     return ALPHA*satC(P,ML,CL) + (1-ALPHA)*LCCV_index(data,P)
@@ -231,7 +152,8 @@ def norm_sil(data:np.array, P:np.array) -> float:
 def NH(data:np.array, P:np.array) -> float:
     COM = coAssociation_matrix(P)
     dis_mat = euclidean_distances(data, data)
-    coef = np.corrcoef(1-COM,dis_mat)
+    COM = 1 - COM
+    coef = np.corrcoef(COM.flatten(),dis_mat.flatten())[0,1]
     return (coef + 1)/2
 
 
@@ -246,14 +168,16 @@ def coAssociation_matrix(P:np.array) -> np.array:
     Output:
         - type[np.array] The Co-association matrix
     '''
-    N, n = P.shape
-    CA_M = np.empty([N,N])
+    N = P.shape[0]
+    CA_M = np.empty((N,N), dtype=int)
+
     perms = permutations(np.arange(N),2)
     for p in perms:
         i,j = p[0], p[1]
         Ci, Cj = P[i], P[j]
         CA_M[i,j] = indicator(Ci, Cj)
-    CA_M = np.fill_diagonal(CA_M, 1)
+        CA_M[j,i] = CA_M[i, j]
+    np.fill_diagonal(CA_M, 1)
     return CA_M
 
 def indicator(Ci:int,Cj:int) -> int:
