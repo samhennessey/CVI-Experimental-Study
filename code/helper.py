@@ -30,7 +30,25 @@ def percentage_constrint_generation(data:np.array, GT_labels:np.array, percentag
             ML.append(comb)
         else:
             CL.append(comb)
+
     return np.asarray(ML), np.asarray(CL)
+
+def random_constraint_generation(data:np.array, GT_lables:np.array, percentage:float) -> np.array:
+    ML,CL = [], []
+    N, n = data.shape
+    no_constraints = int(N*percentage)
+    count = 0
+    while count < no_constraints:
+        p1, p2 = 0, 0
+        while p1 == p2:
+            p1, p2 = random.randint(0,N-1), random.randint(0,N-1)
+        if GT_lables[p1] == GT_lables[p2]:
+            ML.append([p1, p2])
+        else:
+            CL.append([p1, p2])
+        count += 1
+    return np.asarray(ML), np.asarray(CL)
+
 
 def constraint_generation_setN(data:np.array, GT_labels:np.array, N:int) -> np.array:
     ML, CL = [], []

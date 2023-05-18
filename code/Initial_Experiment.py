@@ -34,9 +34,7 @@ if __name__ == '__main__':
         D, L = randomised_normal(DATA_WIDTH, NO_CLUSTERS, Np, DATA_DIMS)
         N,n = D.shape
 
-        CP = int(N/0.1)
-
-        ML, CL = constraint_generation_setN(D, L, CP) # Generate the constraints from the labels
+        ML, CL = random_constraint_generation(D, L, CONSTRAINT_PERCENTAGE) # Generate the constraints from the labels
 
         K_RANGE = np.arange(2, MAX_CLUSTERS + 1)
 
