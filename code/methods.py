@@ -96,7 +96,7 @@ def single_linkage(data:np.array,K:int):
     Z = linkage(X, method='single')
     return fcluster(Z, K, criterion='maxclust')
 
-def LCCV(data:np.array) -> np.array:
+def LCCV_HC(data:np.array) -> np.array:
     
     N,n = data.shape
     dist = euclidean_distances(data,data)
@@ -326,7 +326,7 @@ def LCCV(data:np.array) -> np.array:
     bestcvi, id = np.max(cv), np.argmax(cv) # best value of the CVI
     bestcl = cls[id] # correspoinding labels
 
-    return bestcl, bestcvi
+    return bestcl, bestcvi, results
 
 ''' METHODS WITH CONSTAINTS '''
 def PCKM(data:np.array,K:int,ML:np.array,CL:np.array) -> np.array:
