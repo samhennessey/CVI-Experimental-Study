@@ -2,7 +2,7 @@ from CVIs import *
 from methods import *
 from helper import *
 from randomised_normal import *
-from results import *
+from results_helper import *
 import json
 from sklearn.metrics.cluster import normalized_mutual_info_score
 
