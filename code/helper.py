@@ -10,7 +10,7 @@ import random
 
 ''' LOADING THE DATA '''
 def load_data(file_path:str) -> np.array:
-    D = pd.read_csv(file_path, delim_whitespace=True).to_numpy()
+    D = pd.read_csv(file_path).to_numpy()
     data, labels = D[:,:-1], D[:,-1]
     return data,labels
 
@@ -80,10 +80,9 @@ def get_CVIs() -> list:
 def get_clMethods() -> list:
     return [f for _, f in inspect.getmembers(methods, inspect.isfunction)]
 
-def get_datasets() -> list:
-    ds_loc = '../datasets/'
+def get_datasets(ds_loc:str) -> list:
     datasets = []
     for file in os.listdir(ds_loc):
-        if file.endswith('.txt'):
+        if file.endswith('.csv'):
             datasets.append(ds_loc + file)
     return datasets

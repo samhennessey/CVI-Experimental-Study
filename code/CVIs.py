@@ -20,9 +20,80 @@ def satC(P:np.array, ML:np.array,CL:np.array) -> float:
             sat += 1
     return sat/(len(ML) + len(CL))
 
+def satML(P:np.array, ML:np.array) -> float:
+    sat = 0
+    for ml in ML:
+        if P[ml[0]] == P[ml[1]]:
+            sat += 1
+    return sat/ML.shape[0]
+
+def satCL(P:np.array, CL:np.array) -> float:
+    sat = 0
+    for cl in CL:
+        if P[cl[0]] == P[cl[1]]:
+            sat += 1
+    return sat/CL.shape[0]
+
+
+# ------------------------------- NEW -------------------------------
+
+## BAD
+def satC_ML_CL_split(data:np.array,P:np.array,ML:np.array,CL:np.array) -> float:
+    return ALPHA*((satML(P,ML)+norm_sil(data,P))/2) + (1-ALPHA)*((satCL(P,CL) + NH(data,P))/2)
+
+## BAD
+def sat_split(data:np.array, P:np.array, ML:np.array, CL:np.array) -> float:
+    alpha = 0.6
+    if ML.shape[0] > CL.shape[0]:
+        return alpha*satML(P,ML) + (1-alpha)*satCL(P,CL)
+    else:
+        return alpha*satCL(P,CL) + (1-alpha)*satML(P,ML)
+
+## BAD  
+def sat_split_sil(data:np.array,P:np.array,ML:np.array,CL:np.array) -> float:
+    if ML.shape[0] > CL.shape[0]:
+        return (satML(P,ML) + satCL(P,CL)*norm_sil(data, P))/2
+    else:
+        return (satCL(P,CL) + satML(P,ML)*norm_sil(data, P))/2
+
+## BAD
+def satC_muli_comb(data:np.array,P:np.array,ML:np.array,CL:np.array) -> float:
+    return satC(P, ML, CL) * NH(data, P) * norm_sil(data,P)
+
+## BAD
+def sat_split_NH_sil(data:np.array,P:np.array,ML:np.array,CL:np.array) -> float:
+    return ALPHA*satML(P,ML)*satCL(P,CL) + (1-ALPHA)*((NH(data,P) + norm_sil(data,P))/2)
+
+## BAD
+def sat_split_multi_comb(data:np.array,P:np.array,ML:np.array,CL:np.array) -> float:
+    if ML.shape[0] > CL.shape[0]:
+        return (satML(P,ML)*NH(data,P)*norm_sil(data,P) + satCL(P,CL))/2
+    else:
+        return (satCL(P,CL)*NH(data,P)*norm_sil(data,P) + satML(P,ML))/2
+
+## GOOD
+def satC_multi_sil(data:np.array,P:np.array,ML:np.array,CL:np.array) -> float:
+    return satC(P,ML,CL)*norm_sil(data,P)
+
+## GOOD 
+def satC_sil_pNH(data:np.array,P:np.array,ML:np.array,CL:np.array) -> float:
+    return ALPHA*satC(P,ML,CL)*norm_sil(data,P) + (1-ALPHA)*NH(data,P)
+
+## GOOD 
+def satC_NH_sil_add(data:np.array,P:np.array,ML:np.array,CL:np.array) -> float:
+    return (satC(P,ML, CL)*norm_sil(data,P) + NH(data,P))/2
+
+def satC_mComb(data:np.array,P:np.array,ML:np.array,CL:np.array) -> float:
+    return ALPHA*satC(P, ML, CL) + (1-ALPHA)*NH(data,P)*norm_sil(data,P)
+
+
+# ------------------------------- NEW -------------------------------
+
+## GOOD
 def satC_comb(data:np.array,P:np.array,ML:np.array,CL:np.array) -> float:
     return ALPHA*satC(P,ML,CL) + (1-ALPHA)*((NH(data,P) + norm_sil(data,P))/2)
 
+## GOOD
 def satC_sil(data:np.array, P:np.array,ML:np.array,CL:np.array) -> float:
     return ALPHA*satC(P,ML,CL) + (1-ALPHA)*norm_sil(data,P)
 
